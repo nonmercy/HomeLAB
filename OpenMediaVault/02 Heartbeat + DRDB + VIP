@@ -1,0 +1,104 @@
+# Vse je potreba poustet na obou serverech. Servery museji byt totozne kopie vcetne share
+
+# Nejprve prihlasit jako root:
+sudo su
+
+# Instalace ifconfig z duvodu VIP
+apt install net-tools
+
+# Zjisteni, odkud se pousti ifconfig a pote priradit opravneni
+which ifconfig
+chmod +x /*****
+
+# Instalace balicku Heartbeat a DRBD
+apt install heartbeat drbd-utils
+
+# Nastaveni config. souboru
+echo 'logfacility     local0
+autojoin none
+warntime 5
+deadtime 15
+initdead 60
+keepalive 2
+ucast eno1 10.168.2.224
+ucast eno1 10.168.2.225
+auto_failback on
+node MS04
+node MS05' > /etc/ha.d/ha.cf
+
+# Zalozeni autorizacniho klice
+echo 'auth1
+1 sha1 2e3b750aa6af2561e4900c1cfa1179be86b8a0f8' > /etc/ha.d/authkeys
+
+# Opravneni pro cteni aut. klice
+chmod 600 /etc/ha.d/authkeys
+
+# Nastaveni sluzeb pro sledovani + VIP
+echo 'MS04 shared-drive
+MS04 IPaddr::10.168.2.99/22/eno1' > /etc/ha.d/haresources
+
+# Vytvoreni adresare pro sdileny souborovy system
+mkdir -p /sharefs
+
+# Vytvoreni sluzby pro sledovani heartbeat systemem
+echo '#!/bin/bash
+param=$1
+if [ "start" == "$param" ] ; then
+  drbdadm primary test  
+  mount /dev/drbd0 /sharefs
+  exit 0
+elif [ "stop" == "$param" ] ; then
+  umount /sharefs
+  drbdadm secondary test  
+  exit 0;
+elif [ "status" == "$param" ] ; then
+  exit 0;
+else
+  echo "no such command $param"
+  exit 1;
+fi' > /etc/init.d/shared-drive
+
+# Nastaveni opravneni pro spusteni skriptu
+chmod 700 /etc/init.d/shared-drive
+
+# Konfigurace DRBD sluzby
+echo 'global {
+    usage-count  yes;
+}
+common {
+    net {
+        protocol C;
+    }
+}' > /etc/drbd.d/global_common.conf
+
+# Konfigurace zdroje pro synchronizaci mezi systemy
+echo 'resource test {
+    device /dev/drbd0;
+    disk /dev/md0;
+    meta-disk internal; 
+    on MS04 {
+        address 10.168.2.224:7789;
+    }
+    on MS05 {
+        address 10.168.2.225:7789;
+    }
+}' > /etc/drbd.d/test.res
+
+# Vytvoreni blokoveho zarizeni
+drbdadm create-md test
+
+# Spusteni sluzby
+drbdadm up test
+
+# Kontrola zarizeni a stavu sluzby
+lsblk
+drbdadm status test
+
+# Specificka nastaveni pro vm1
+drbdadm primary --force test
+drbdadm status test
+mkfs -t ext4 /dev/drbd0 
+
+# Specificka nastaveni pro vm2
+drbdadm secondary test
+drbdadm status test

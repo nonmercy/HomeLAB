@@ -1,0 +1,153 @@
+# Vše je potřeba pustit na obou serverech. Servery musejí být totožné kopie včetně share
+
+# Nejprve přihlásit jako root:
+sudo su
+
+# Instalace ifconfig z důvodu VIP
+apt install net-tools
+
+# Zjištění, odkud se pouští ifconfig a poté přiřadit oprávnění
+which ifconfig
+chmod +x /*****
+
+# Instalace balíčku Heartbeat a DRBD
+apt install heartbeat drbd-utils
+
+# Nastavení config. souboru
+echo 'logfacility     local0
+autojoin none
+warntime 5
+deadtime 15
+initdead 60
+keepalive 2
+ucast eno1 10.168.2.224
+ucast eno1 10.168.2.225
+auto_failback on
+node MS04
+node MS05' > /etc/ha.d/ha.cf
+
+# Oprávnění pro čtení ha.cf
+sudo chmod 644 /etc/ha.d/ha.cf
+
+# Založení autorizačního klíče
+echo 'auth1
+1 sha1 2e3b750aa6af2561e4900c1cfa1179be86b8a0f8' > /etc/ha.d/authkeys
+
+# Oprávnění pro čtení aut. klíče
+chmod 600 /etc/ha.d/authkeys
+
+# Nastavení služeb pro sledování + VIP
+echo 'MS04 shared-drive1
+MS04 shared-drive2
+MS04 IPaddr::10.168.2.99/22/eno1' > /etc/ha.d/haresources
+
+# Vytvoření adresáře pro sdílený souborový systém
+mkdir -p /sharefs1
+mkdir -p /sharefs2
+
+# Vytvoření služby pro sledování heartbeat systémem
+# Pro každý sdílený oddíl vytvořte samostatný skript
+# Skript pro shared-drive1
+echo '#!/bin/bash
+param=$1
+if [ "start" == "$param" ] ; then
+  drbdadm primary test1  
+  mount /dev/drbd1 /sharefs1
+  exit 0
+elif [ "stop" == "$param" ] ; then
+  umount /sharefs1
+  drbdadm secondary test1  
+  exit 0;
+elif [ "status" == "$param" ] ; then
+  exit 0;
+else
+  echo "no such command $param"
+  exit 1;
+fi' > /etc/init.d/shared-drive1
+
+# Skript pro shared-drive2
+echo '#!/bin/bash
+param=$1
+if [ "start" == "$param" ] ; then
+  drbdadm primary test2  
+  mount /dev/drbd2 /sharefs2
+  exit 0
+elif [ "stop" == "$param" ] ; then
+  umount /sharefs2
+  drbdadm secondary test2  
+  exit 0;
+elif [ "status" == "$param" ] ; then
+  exit 0;
+else
+  echo "no such command $param"
+  exit 1;
+fi' > /etc/init.d/shared-drive2
+
+# Nastavení oprávnění pro spuštění skriptu
+chmod 700 /etc/init.d/shared-drive1
+chmod 700 /etc/init.d/shared-drive2
+
+# Konfigurace DRBD služby
+echo 'global {
+    usage-count  yes;
+}
+common {
+    net {
+        protocol C;
+    }
+}' > /etc/drbd.d/global_common.conf
+
+# Konfigurace zdroje pro synchronizaci mezi systémy
+# Pro každý sdílený oddíl vytvořte samostatný zdroj
+# Zdroj pro test1
+echo 'resource test1 {
+    device /dev/drbd1;
+    disk /dev/md1; # Oddíl 1
+    meta-disk internal; 
+    on MS04 {
+        address 10.168.2.224:7789;
+    }
+    on MS05 {
+        address 10.168.2.225:7789;
+    }
+}' > /etc/drbd.d/test1.res
+
+# Zdroj pro test2
+echo 'resource test2 {
+    device /dev/drbd2;
+    disk /dev/md2; # Oddíl 2
+    meta-disk internal; 
+    on MS04 {
+        address 10.168.2.224:7790; # Jiný port
+    }
+    on MS05 {
+        address 10.168.2.225:7790; # Jiný port
+    }
+}' > /etc/drbd.d/test2.res
+
+# Vytvoření blokového zařízení
+drbdadm create-md test1
+drbdadm create-md test2
+
+# Spuštění služby
+drbdadm up test1
+drbdadm up test2
+
+# Kontrola zařízení a stavu služby
+lsblk
+drbdadm status test1
+drbdadm status test2
+
+# Specifická nastavení pro MS04
+drbdadm primary --force test1
+drbdadm primary --force test2
+drbdadm status test1
+drbdadm status test2
+mkfs -t ext4 /dev/drbd1 
+mkfs -t ext4 /dev/drbd2 
+
+# Specifická nastavení pro MS05
+drbdadm secondary test1
+drbdadm secondary test2
+drbdadm status test1
+drbdadm status test2
