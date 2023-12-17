@@ -29,4 +29,4 @@ sudo apt-get install -y docker-ce docker-ce-cli containerd.io
 sudo docker run hello-world
 
 
-#Tento skript uložte do souboru /tmp/docker, ve slozce /tmp ho udelejte spustitelnym pomoci prikazu chmod +x docker a poté ho spustte pomoci ./docker. 
+#Tento skript ulozte do souboru /tmp/docker, ve slozce /tmp ho udelejte spustitelnym pomoci prikazu chmod +x docker a pote ho spustte pomoci ./docker. 
