@@ -1,0 +1,45 @@
+
+			Docker skript pro Debian 12
+
+#!/bin/bash
+
+# Aktualizace indexu balicku apt
+sudo apt-get update
+
+# Instalace balicku, které umoznuji apt pouzivat repozitar pres HTTPS
+sudo apt-get install -y \
+    ca-certificates \
+    curl \
+    gnupg
+
+# Pridani oficialniho GPG klice Dockeru
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo chmod a+r /etc/apt/keyrings/docker.gpg
+
+# Nastaveni repozitare pro stahnuti Dockeru
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# Aktualizace indexu balicku apt
+sudo apt-get update
+
+# Instalace nejnovejsi verze Docker, docker-compose, containerd atd
+sudo apt-get install -y \
+    docker-ce \
+    docker-ce-cli \
+    containerd.io \
+    docker-compose \
+    docker-buildx-plugin \
+    docker-compose-plugin
+
+# Vytvorit docker skupinu vlozit usera pro nonroot opravneni (pote restart)
+sudo usermod -aG docker $USER
+newgrp docker
+
+#Overení spravne nainstalovan spustenim obrazu hello-world
+docker run hello-world
+
+#Tento skript ulozte do souboru /tmp/docker, ve slozce /tmp ho udelejte spustitelnym pomoci prikazu chmod +x docker a pote ho spustte pomoci ./docker. 
