@@ -1,0 +1,5 @@
+# aplikace pro instalaci vsech security baliku automaticky
+sudo apt install unattended-upgrades
+
+# vytvoření scriptu pro autocheck a instalaci security baliku
+sudo dpkg-reconfigure --priority=low unattended-upgrades
