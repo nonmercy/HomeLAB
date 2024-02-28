@@ -1,0 +1,28 @@
+# pridani repositaru – neni potreba pro Debian SID/testing
+echo "deb http://deb.volian.org/volian/ scar main" | sudo tee /etc/apt/sources.list.d/volian-archive-scar-unstable.list; wget -qO - https://deb.volian.org/volian/scar.key | sudo tee /etc/apt/trusted.gpg.d/volian-archive-scar-unstable.gpg
+
+# instalace Nala
+sudo apt update && sudo apt install nala
+
+# update miroru pro zrychleni stahovani (idealni je vybrat 3)
+sudo nala fetch
+
+# konvertovat APT na Nala (na konec ~/.bashrc a /root/.bashrc )
+echo 'apt() { 
+  command nala "$@"
+}
+sudo() {
+  if [ "$1" = "apt" ]; then
+    shift
+    command sudo nala "$@"
+  else
+    command sudo "$@"
+  fi
+}' | tee -a ~/.bashrc | sudo tee -a /root/.bashrc
+
+# Nala ma perfektni historii a hlavne UNDO! To je life saver.
+# zobrazeni historie
+nala history
+
+# funkce vzit neco zpet pomoci ID z historie
+sudo nala history undo ID
