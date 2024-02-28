@@ -9,7 +9,7 @@
     apt:
       update_cache: yes
       upgrade: yes
-    when: ansible_distribution == ["Debian", "Ubuntu"]
+    when: ansible_distribution == "Debian" or ansible_distribution == "Ubuntu"
 
   - name: install update for CentOS
     tags: always
@@ -38,9 +38,9 @@
     apt:
       name:
         - apache2
-        - llibapache2-mod-php
+        - libapache2-mod-php
       state: latest
-    when: ansible_distribution == ["Debian", "Ubuntu"]
+    when: ansible_distribution == "Debian" or ansible_distribution == "Ubuntu"
 
   - name: install apache and php packages for CentOS
     tags: apache,httpd,centos
@@ -85,7 +85,7 @@
     apt:
       name: mariadb-server
       state: latest
-    when: ansible_distribution == ["Debian", "Ubuntu"]
+    when: ansible_distribution == "Debian" or ansible_distribution == "Ubuntu"
 
   - name: install mariadb packages for CentOS
     tags: db,mariadb,centos
