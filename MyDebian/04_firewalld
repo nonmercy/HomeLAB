@@ -3,7 +3,7 @@
 # Kontrola, zda je firewalld jiz nainstalovan
 if ! command -v firewall-cmd &> /dev/null; then
     echo "firewalld neni nainstalovan. Provadim instalaci..."
-    sudo yum install firewalld -y
+    sudo apt install firewalld -y
 else
     echo "firewalld je jiz nainstalovan."
 fi
