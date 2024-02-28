@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# Kontrola, zda je firewalld jiz nainstalovan
+if ! command -v firewall-cmd &> /dev/null; then
+    echo "firewalld neni nainstalovan. Provadim instalaci..."
+    sudo yum install firewalld -y
+else
+    echo "firewalld je jiz nainstalovan."
+fi
+
+# Zastaveni a zakazani nftables
+echo "Zastavuji a zakazuji nftables..."
+sudo systemctl stop nftables
+sudo systemctl disable nftables
+
+# Kontrola uspesnosti
+if [ $? -eq 0 ]; then
+    echo "nftables uspesne zastaven a zakazan."
+else
+    echo "Nepodarilo se zastavit nebo zakazat nftables. Zkontrolujte, prosim, vystup prikazu a res te prípadne chyby."
+    exit 1
+fi
+
+# Spusteni a povoleni firewalld
+echo "Spoustim a povoluji firewalld..."
+sudo systemctl start firewalld
+sudo systemctl enable firewalld
+
+# Kontrola uspesnosti
+if [ $? -eq 0 ]; then
+    echo "firewalld uspesne spusten a povolen."
+else
+    echo "Nepodarilo se spustit nebo povolit firewalld. Zkontrolujte, prosim, vystup prikazu a res te prípadne chyby."
+    exit 1
+fi
+
+echo "Operace dokoncena. Stav firewallu byl uspesne aktualizovan."
