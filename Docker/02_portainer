@@ -1,0 +1,37 @@
+# Portainer.io HTTP
+
+# Vytvoreni dat 
+docker volume create portainer_data
+
+# Spusťte Portainer s Dockerem 
+docker run -d -p 9000:9000 --name portainer \
+	--restart=always \
+	-v /var/run/docker.sock:/var/run/docker.sock \
+	-v portainer_data:/data portainer/portainer-ce
+
+
+# Portainer.io HTTPS
+
+# Vytvoreni dat 
+docker volume create portainer_data
+ 
+
+# Vytvoreni Self-Signed Certifikatu
+openssl req -x509 -newkey rsa:4096 -keyout portainer.key -out portainer.crt -days 365 -nodes
+
+# Tento prikaz vytvori 4096-bit RSA klic (portainer.key) a self-signed certifikat #(portainer.crt) platny po dobu 365 dni.
+# - Parametr -nodes zajisti, ze soukromý klic nebude chranen heslem. To je uzitecne pro automatizovane procesy, ale mejte na pameti bezpecnostni rizika.
+# - Behem procesu budete vyzvani k zadani informaci, jako je zeme, organizace atd. Tyto udaje jsou soucasti certifikatu.
+
+# Presunte certifikat a klic do bezpecneho adresare 
+sudo mkdir -p /etc/portainer/certs
+sudo mv portainer.crt /etc/portainer/certs/
+sudo mv portainer.key /etc/portainer/certs/
+
+# Spustte Portainer s Dockerem 
+docker run -d -p 9443:9443 --name portainer \
+	--restart=always \
+	-v /etc/portainer/certs/portainer.crt:/certs/portainer.crt \
+	-v /etc/portainer/certs/portainer.key:/certs/portainer.key \
+	-v portainer_data:/data portainer/portainer-ce \
+	--ssl --sslcert /certs/portainer.crt --sslkey /certs/portainer.key

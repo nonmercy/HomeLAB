@@ -1,0 +1,5 @@
+# alias for ssh agent
+alias ssha='eval $(ssh-agent) && ssh-add'
+
+# my alias
+alias st='curl -s https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py | python3 -'

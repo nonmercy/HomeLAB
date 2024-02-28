@@ -1,0 +1,14 @@
+# Stažení kontejneru MS SQL 2019 
+
+docker pull mcr.microsoft.com/mssql/server:2019-latest 
+
+# Spuštění instance mssql-server jako SQL Express edition *
+
+docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=tveSilne(!)Heslo" -e "MSSQL_PID=Express" -p 1433:1433 -v sqlvolume:/var/opt/mssql --restart unless-stopped -d mcr.microsoft.com/mssql/server:2019-latest
+
+# Připojení k MS SQL pomocí nástroje sqlcmd uvnitř kontejneru.
+
+docker exec -it <container_id|container_name> /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P <tveSilne(!)Heslo>
+
+
+# * (parametry slouží k automatickému restartování kontejneru, pokud není explicitně zastaven, a k vytvoření persistentního úložiště pro data SQL Serveru )

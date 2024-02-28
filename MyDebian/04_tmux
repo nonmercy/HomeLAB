@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# Instalace Tmux
+sudo apt install tmux
+
+# Instalace TPM, pokud jeste neni nainstalovan
+if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
+    echo "Instaluji TPM (Tmux Plugin Manager)..."
+    git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+else
+    echo "TPM (Tmux Plugin Manager) je jiz nainstalovan."
+fi
+
+# Konfigurace .tmux.conf pro pluginy
+TMUX_CONF="$HOME/.tmux.conf"
+
+echo "Pridavam konfiguraci pluginu do $TMUX_CONF..."
+
+# Pridani konfigurace do .tmux.conf
+{
+    echo "# Nastaveni TPM"
+    echo "set -g @plugin 'tmux-plugins/tpm'"
+    echo "set -g @plugin 'tmux-plugins/tmux-sensible'"
+    echo "set -g @plugin 'tmux-plugins/tmux-resurrect'"
+    echo "set -g @plugin 'tmux-plugins/tmux-continuum'"
+    echo ""
+    echo "# Nastaveni automatickeho ukladani a obnovovani s tmux-continuum"
+    echo "set -g @continuum-restore 'on'"
+    echo "set -g @continuum-save-interval '15'"
+    echo ""
+    echo "# Inicializace TPM"
+    echo "run '~/.tmux/plugins/tpm/tpm'"
+} >> "$TMUX_CONF"
+
+echo "Konfigurace byla pridana do $TMUX_CONF. Restartujte tmux nebo nactete novou konfiguraci."
+
+# Nacteni konfigurace a instalace pluginu (musi byt provedeno rucne v tmux session)
+echo "Pro dokonceni instalace pluginu restartujte tmux a ve tmux session stisknete prefixovou klavesu (vychozi Ctrl+b) a pote I (velke i) pro instalaci pluginu."
+
+# Instrukce pro pouzivani Tmux Resurrect, Tmux Continuum a Tmux Sensible
+echo "Pro pouzivani Tmux Resurrect: Ulozeni session: Ctrl+b, Ctrl+s. Obnova session: Ctrl+b, Ctrl+r."
+echo "Tmux Continuum automaticky uklada tmux session kazdych 15 minut a obnovuje session pri spusteni tmux."
+echo "Tmux Sensible poskytuje rozumne vychozi nastaveni pro tmux."
