@@ -18,6 +18,17 @@
       update_cache: yes
     when: ansible_distribution == "CentOS"
 
+
+- hosts: workstations
+  become: true
+  tasks:
+
+  - name: install unzip
+    tags: unzip
+    package:
+      name: unzip
+
+
 - hosts: web_servers
   become: true
   tasks:
@@ -40,6 +51,31 @@
       state: latest
     when: ansible_distribution == "CentOS"
 
+  - name: start httpd for CentOS
+    tags: apache,httpd,centos
+    service:
+      name: httpd
+      state: started
+      enabled: yes
+    when: ansible_distribution == "CentOS"
+
+  - name: change admins email address for CentOS
+    tags: apache,httpd,centos
+    lineinfile:
+      path: /etc/httpd/conf/httpd.conf
+      regexp: '^ServerAdmin'
+      line: ServerAdmin somebody@somewhere.net
+    when: ansible_distribution == "CentOS"
+    register: httpd
+
+  - name: restart httpd for CentOS
+    tags: apache,httpd,centos
+    service:
+      name: httpd
+      state: restarted
+    when: httpd.changed
+
+
 - hosts: db_servers
   become: true
   tasks:
@@ -57,6 +93,7 @@
       name: mariadb
       state: latest
     when: ansible_distribution == "CentOS"
+
 
 - hosts: file_servers
   become: true
