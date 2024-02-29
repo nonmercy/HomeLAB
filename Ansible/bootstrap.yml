@@ -1,0 +1,44 @@
+---
+
+- hosts: all
+  become: true
+  pre_tasks:
+
+  - name: install update for Debian and Ubuntu
+    tags: always
+    apt:
+      update_cache: yes
+      upgrade: yes
+    when: ansible_distribution == "Debian" or ansible_distribution == "Ubuntu"
+
+  - name: install update for CentOS
+    tags: always
+    dnf:
+      update_only: yes
+      update_cache: yes
+    when: ansible_distribution == "CentOS"
+
+- hosts: workstations
+  become: true
+  tasks:
+
+  - name: create user ansible
+    tags: always
+    user:
+      name: ansible
+      groups: root
+
+  - name: add ssh key for ansible
+    tags: always
+    authorized_key:
+      user: ansible
+      key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICkFGdZD9luw7yy7qJu25zZVG3B4N8OTU17Gf0MKHNza ansible"
+
+  - name: add sudoers file for ansible
+    tags: always
+    copy:
+      src: sudoer.ansible
+      dest: /etc/sudoers.d/ansible
+      owner: root
+      group: root
+      mode: '0440'
