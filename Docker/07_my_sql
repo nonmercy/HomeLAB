@@ -1,0 +1,7 @@
+# Stažení kontejneru My SQL
+
+docker pull mysql
+
+# Spuštění instance mysql-server
+
+docker run --name mysql -e MYSQL_ROOT_PASSWORD=mujSuperTajneHeslo -e MYSQL_DATABASE=mojeDatabaze -e MYSQL_USER=uzivatel -e MYSQL_PASSWORD=heslo -p 3306:3306 -d mysql
