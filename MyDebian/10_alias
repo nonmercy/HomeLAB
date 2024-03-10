@@ -1,5 +1,12 @@
-# alias for ssh agent
+# alias pro ssh agent
 alias ssha='eval $(ssh-agent) && ssh-add'
 
-# my alias
+# vychozi text editor
+export EDITOR='nano'
+
+# moje alias
+alias install="sudo apt install"
+alias remove=“suod apt remove“
+alias update="sudo apt update"
+alias upgrade="sudo apt upgrade"
 alias st='curl -s https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py | python3 -'
