@@ -6,7 +6,8 @@ export EDITOR='nano'
 
 # moje alias
 alias install="sudo apt install"
-alias remove=“suod apt remove“
+alias remove="sudo apt remove"
 alias update="sudo apt update"
 alias upgrade="sudo apt upgrade"
 alias st='curl -s https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py | python3 -'
+
