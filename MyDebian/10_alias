@@ -5,9 +5,8 @@ alias ssha='eval $(ssh-agent) && ssh-add'
 export EDITOR='nano'
 
 # moje alias
-alias install="sudo apt install"
-alias remove="sudo apt remove"
-alias update="sudo apt update"
-alias upgrade="sudo apt upgrade"
-alias st='curl -s https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py | python3 -'
-
+alias install="sudo nala install"
+alias remove="sudo nala remove"
+alias update="sudo nala update"
+alias upgrade="sudo nala upgrade"
+alias st="curl -s https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py | python3 -"
