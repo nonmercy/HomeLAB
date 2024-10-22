@@ -1,0 +1,44 @@
+---
+
+- hosts: all
+  become: yes
+
+  pre_tasks:
+
+  - name: install updates
+    dnf:
+      update_only: yes
+      update_cache: yes
+
+  tasks:
+
+  - name: install firewalld
+    dnf:
+      name: firewalld
+      state: latest
+
+  - name: start and enable firewalld service
+    systemd:
+      name: firewalld
+      state: started
+      enabled: true
+
+  - name: install tar
+    dnf:
+      name: tar
+      state: latest
+
+  - name: install unzip
+    dnf:
+      name: unzip
+      state: latest
+
+  - name: install midnight commander
+    dnf:
+      name: mc
+      state: latest
+
+  - name: install nano
+    dnf:
+      name: nano
+      state: latest
