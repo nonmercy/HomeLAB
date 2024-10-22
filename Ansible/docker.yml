@@ -1,0 +1,57 @@
+- hosts: dockers
+  become: yes
+  pre_tasks:
+
+    - name: Aktualizace balíčků
+      dnf:
+        name: "*"
+        state: latest
+
+    - name: Instalace nástrojů pro správu repozitářů
+      dnf:
+        name: dnf-plugins-core
+        state: present
+
+    - name: Přidání Docker repozitáře
+      command: dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+      args:
+        creates: /etc/yum.repos.d/docker-ce.repo
+
+  tasks:
+
+    - name: Instalace Dockeru
+      dnf:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
+
+    - name: Spuštění a povolení Docker služby
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
+
+    - name: Získání poslední verze Docker Compose
+      uri:
+        url: https://api.github.com/repos/docker/compose/releases/latest
+        return_content: yes
+      register: docker_compose_latest
+
+    - name: Uložení poslední verze Docker Compose
+      set_fact:
+        docker_compose_version: "{{ docker_compose_latest.json.tag_name }}"
+
+    - name: Stažení Docker Compose
+      get_url:
+        url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-{{ ansible_system | lower }}-{{ ansible_architecture }}"
+        dest: /usr/local/bin/docker-compose
+        mode: '0755'
+
+    - name: Změna práv pro Docker Compose
+      file:
+        path: /usr/local/bin/docker-compose
+        mode: '0755'
+        owner: root
+        group: root
