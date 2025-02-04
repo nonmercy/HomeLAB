@@ -1,3 +1,3 @@
 # HomeLAB
 
-Muj vlastní HOME.lab
+Můj vlastní HOME.lab
